@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npx vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -33,7 +33,4 @@
     "vite": "7.2.4",
     "vite-plugin-singlefile": "2.3.0"
   }
-  "scripts": {
-  "build": "npx vite build"
 }
-
