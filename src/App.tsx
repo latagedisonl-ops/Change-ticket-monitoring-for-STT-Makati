@@ -8,7 +8,6 @@ import TicketDetailModal from './components/TicketDetailModal';
 import FilePanel from './components/FilePanel';
 import { MonthlyTrendChart, StatusPieChart, CategoryBarChart, RiskRadialChart } from './components/Charts';
 
-// ─── Icons ──────────────────────────────────────────────────────────────────
 const Icon = {
   Total: () => (
     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -55,11 +54,12 @@ const Icon = {
 type Tab = 'dashboard' | 'tickets' | 'analytics';
 
 export default function App() {
-  const [tickets, setTickets] = useState<ChangeTicket[]>(MOCK_TICKETS);
+  const [tickets, setTickets] = useState<ChangeTicket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<ChangeTicket | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [currentMonth] = useState('April 2026');
   const [, setSidebarOpen] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   const stats = useMemo(() => ({
     total: tickets.length,
@@ -73,18 +73,67 @@ export default function App() {
   }), [tickets]);
 
   const handleImport = (imported: Partial<ChangeTicket>[]) => {
-    const full = imported as ChangeTicket[];
-    setTickets(prev => [...prev, ...full]);
+    setTickets(prev => [...prev, ...imported as ChangeTicket[]]);
+  };
+
+  const handleLoadSample = () => {
+    setTickets(MOCK_TICKETS);
   };
 
   const unreadAlerts = MOCK_ALERTS.filter(a => !a.read).length;
 
+  const hasData = tickets.length > 0;
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col" style={{ fontFamily: "'Inter', 'system-ui', sans-serif" }}>
-      {/* ─── Top Header ─────────────────────────────────────────────── */}
+
+      {/* ─── Welcome Modal ──────────────────────────────────────────────── */}
+      {showWelcome && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+          <div className="bg-slate-900 border border-slate-700/60 rounded-3xl shadow-2xl max-w-md w-full p-8 text-center">
+            <div className="flex justify-center mb-5">
+              <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/30">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-black text-white tracking-tight">Change Ticket Monitor</h1>
+            <p className="text-sm text-slate-400 mt-1 font-medium">STT-PH Makati · Operations Dashboard</p>
+
+            <p className="text-xs text-slate-500 mt-4 leading-relaxed">
+              Track, monitor, and analyze change tickets for STT Makati operations.
+              Import your own CSV data or load sample data to explore the dashboard.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <button
+                onClick={() => { handleLoadSample(); setShowWelcome(false); }}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-blue-500/20"
+              >
+                📊 View Sample Data
+              </button>
+              <button
+                onClick={() => setShowWelcome(false)}
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-xl border border-slate-700/50 transition-colors"
+              >
+                📁 Import My Data
+              </button>
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-slate-800">
+              <p className="text-[11px] text-slate-600">Created by</p>
+              <p className="text-xs font-bold text-slate-400 mt-0.5">Edison Latag</p>
+              <p className="text-[10px] text-slate-600">STT-PH Change Management · v2.0.0</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Top Header ─────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 shadow-xl">
         <div className="flex items-center gap-3 px-4 py-3">
-          {/* Logo & Title */}
           <button onClick={() => setSidebarOpen(o => !o)} className="p-1.5 rounded-lg hover:bg-slate-800 transition-colors lg:hidden">
             <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -99,19 +148,17 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-sm font-extrabold text-white tracking-tight leading-none">Change Ticket Monitor</h1>
-              <p className="text-[10px] text-slate-500 leading-none mt-0.5">STT-PH-MAKATI — Operations Dashboard</p>
+              <p className="text-[10px] text-slate-500 leading-none mt-0.5">STT-PH-MAKATI · Operations Dashboard</p>
             </div>
           </div>
 
-          {/* Breadcrumb site tag */}
           <div className="hidden sm:flex items-center gap-2 ml-2">
             <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            <span className="text-xs text-slate-400 font-medium">STT-PH-MAKATI-...</span>
+            <span className="text-xs text-slate-400 font-medium">STT-PH-MAKATI</span>
           </div>
 
-          {/* Center: Nav tabs */}
           <nav className="hidden md:flex items-center gap-1 ml-4 bg-slate-800/60 rounded-xl p-1">
             {(['dashboard', 'tickets', 'analytics'] as Tab[]).map(tab => (
               <button
@@ -129,7 +176,6 @@ export default function App() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            {/* Month badge */}
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 rounded-lg border border-slate-700/50">
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -137,7 +183,6 @@ export default function App() {
               <span className="text-xs text-slate-300 font-semibold">{currentMonth}</span>
             </div>
 
-            {/* Alert bell */}
             <div className="relative p-2 rounded-lg bg-slate-800 border border-slate-700/50">
               <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -149,20 +194,17 @@ export default function App() {
               )}
             </div>
 
-            {/* Live indicator */}
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-green-500/10 rounded-lg border border-green-500/20">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-[10px] text-green-400 font-semibold uppercase tracking-wider">Live</span>
             </div>
 
-            {/* User */}
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white text-xs shadow-lg">
-              NA
+              EL
             </div>
           </div>
         </div>
 
-        {/* Mobile tabs */}
         <div className="md:hidden flex border-t border-slate-800/60">
           {(['dashboard', 'tickets', 'analytics'] as Tab[]).map(tab => (
             <button
@@ -178,17 +220,47 @@ export default function App() {
         </div>
       </header>
 
-      {/* ─── Main Content ─────────────────────────────────────────────── */}
+      {/* ─── Main Content ────────────────────────────────────────────────── */}
       <main className="flex-1 p-4 lg:p-5 space-y-5 max-w-screen-2xl mx-auto w-full">
 
-        {/* ── DASHBOARD TAB ─────────────────────────────────────────── */}
-        {activeTab === 'dashboard' && (
+        {/* ── Empty State ──────────────────────────────────────────────── */}
+        {!hasData && (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+            <div className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="p-5 bg-slate-800/60 border border-slate-700/50 rounded-3xl">
+                  <svg className="w-12 h-12 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+              </div>
+              <h2 className="text-xl font-black text-white">No data loaded</h2>
+              <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
+                Import a CSV file to get started, or load sample data to explore the dashboard.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+              <button
+                onClick={handleLoadSample}
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-blue-500/20"
+              >
+                📊 Load Sample Data
+              </button>
+              <div className="flex-1">
+                <FilePanel tickets={tickets} onImport={handleImport} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── DASHBOARD TAB ──────────────────────────────────────────────── */}
+        {activeTab === 'dashboard' && hasData && (
           <>
-            {/* Sub-header */}
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">Operations Overview</h2>
-                <p className="text-xs text-slate-500 mt-0.5">All Changes Export — {currentMonth} · Real-time monitoring</p>
+                <p className="text-xs text-slate-500 mt-0.5">All Changes Export · {currentMonth} · Real-time monitoring</p>
               </div>
               <div className="flex gap-2">
                 <span className="px-3 py-1.5 bg-slate-800 border border-slate-700/50 rounded-lg text-xs text-slate-400">
@@ -203,7 +275,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* ── Stat Cards ──────────────────────────────────────────── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
               <div className="col-span-1">
                 <StatCard label="Total" value={stats.total} icon={<Icon.Total />}
@@ -247,32 +318,17 @@ export default function App() {
               </div>
             </div>
 
-            {/* ── Charts + Alerts ─────────────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Trend chart */}
-              <div className="lg:col-span-2">
-                <MonthlyTrendChart />
-              </div>
-              {/* Alerts panel */}
-              <div className="lg:col-span-1">
-                <AlertsPanel alerts={MOCK_ALERTS} />
-              </div>
+              <div className="lg:col-span-2"><MonthlyTrendChart /></div>
+              <div className="lg:col-span-1"><AlertsPanel alerts={MOCK_ALERTS} /></div>
             </div>
 
-            {/* ── Charts Row 2 ──────────────────────────────────────────── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="sm:col-span-1">
-                <StatusPieChart />
-              </div>
-              <div className="sm:col-span-1">
-                <RiskRadialChart />
-              </div>
-              <div className="sm:col-span-2">
-                <CategoryBarChart />
-              </div>
+              <div className="sm:col-span-1"><StatusPieChart /></div>
+              <div className="sm:col-span-1"><RiskRadialChart /></div>
+              <div className="sm:col-span-2"><CategoryBarChart /></div>
             </div>
 
-            {/* ── File Panel + Recent tickets ───────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-1">
                 <FilePanel tickets={tickets} onImport={handleImport} />
@@ -328,8 +384,8 @@ export default function App() {
           </>
         )}
 
-        {/* ── TICKETS TAB ───────────────────────────────────────────── */}
-        {activeTab === 'tickets' && (
+        {/* ── TICKETS TAB ──────────────────────────────────────────────────── */}
+        {activeTab === 'tickets' && hasData && (
           <>
             <div className="flex items-center justify-between">
               <div>
@@ -342,22 +398,21 @@ export default function App() {
           </>
         )}
 
-        {/* ── ANALYTICS TAB ─────────────────────────────────────────── */}
-        {activeTab === 'analytics' && (
+        {/* ── ANALYTICS TAB ────────────────────────────────────────────────── */}
+        {activeTab === 'analytics' && hasData && (
           <>
             <div>
               <h2 className="text-xl font-black text-white tracking-tight">Analytics & Insights</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Visual breakdown of change ticket data — {currentMonth}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Visual breakdown of change ticket data · {currentMonth}</p>
             </div>
 
-            {/* Stats summary row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 text-center">
-                <div className="text-3xl font-black text-green-400">{Math.round((stats.approved / stats.total) * 100)}%</div>
+                <div className="text-3xl font-black text-green-400">{stats.total ? Math.round((stats.approved / stats.total) * 100) : 0}%</div>
                 <div className="text-xs text-slate-500 mt-1">Approval Rate</div>
               </div>
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 text-center">
-                <div className="text-3xl font-black text-red-400">{Math.round((stats.emergency / stats.total) * 100)}%</div>
+                <div className="text-3xl font-black text-red-400">{stats.total ? Math.round((stats.emergency / stats.total) * 100) : 0}%</div>
                 <div className="text-xs text-slate-500 mt-1">Emergency Rate</div>
               </div>
               <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 text-center">
@@ -379,7 +434,6 @@ export default function App() {
               <RiskRadialChart />
             </div>
 
-            {/* Site breakdown table */}
             <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
               <h3 className="font-bold text-slate-200 text-sm mb-4">Site-wise Breakdown</h3>
               <div className="space-y-3">
@@ -401,7 +455,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Assignee leaderboard */}
             <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
               <h3 className="font-bold text-slate-200 text-sm mb-4">Assignee Workload</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -430,7 +483,7 @@ export default function App() {
         )}
       </main>
 
-      {/* ─── Footer ────────────────────────────────────────────────── */}
+      {/* ─── Footer ──────────────────────────────────────────────────────── */}
       <footer className="border-t border-slate-800/60 px-4 py-3 bg-slate-900/50">
         <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-3">
@@ -438,7 +491,7 @@ export default function App() {
             <span className="text-[10px] text-slate-700">·</span>
             <span className="text-[10px] text-slate-600">{currentMonth}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
             {[
               { label: 'Normal', color: 'bg-cyan-500' },
               { label: 'Emergency', color: 'bg-red-500' },
@@ -451,11 +504,14 @@ export default function App() {
               </div>
             ))}
           </div>
-          <span className="text-[10px] text-slate-600">v2.0.0 · Read-only Alerts</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-slate-600">v2.0.0</span>
+            <span className="text-[10px] text-slate-700">·</span>
+            <span className="text-[10px] text-slate-500 font-semibold">Created by Edison Latag</span>
+          </div>
         </div>
       </footer>
 
-      {/* ─── Ticket Detail Modal ───────────────────────────────────── */}
       <TicketDetailModal ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
     </div>
   );
